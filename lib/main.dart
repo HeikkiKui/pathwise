@@ -41,8 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final response = await http.post(
-        // ⚠️ Vaihda osoite jos käytät emulaattoria tai fyysistä laitetta
-        Uri.parse('http://10.0.2.2:5000/generate'),
+        Uri.parse('http://127.0.0.1:5050/generate'), // Make sure this is correct
         body: {'goal': goal},
       );
 
@@ -61,12 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       } else {
         setState(() {
-          _steps.add(LearningStep('Virhe: ${response.statusCode}'));
+          _steps.add(LearningStep('Error: ${response.statusCode}'));
         });
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
+      print('❌ ERROR: $e');
+      print('🪵 STACKTRACE:\n$stacktrace');
       setState(() {
-        _steps.add(LearningStep('Yhteysvirhe: $e'));
+        _steps.add(LearningStep('Connection error: $e'));
       });
     } finally {
       setState(() {
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextField(
               controller: _controller,
               decoration: const InputDecoration(
-                labelText: 'Mitä haluat oppia?',
+                labelText: 'What do you want to learn?',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -101,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: _isLoading ? null : _generateLearningPath,
               child: _isLoading
                   ? const CircularProgressIndicator()
-                  : const Text('Luo oppimispolku'),
+                  : const Text('Generate Learning Path'),
             ),
             const SizedBox(height: 20),
             if (_steps.isNotEmpty)
