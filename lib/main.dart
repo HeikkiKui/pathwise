@@ -27,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _controller = TextEditingController();
-  String _result = '';
+  final List<LearningStep> _steps = [];
   bool _isLoading = false;
 
   Future<void> _generateLearningPath() async {
@@ -36,27 +36,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _isLoading = true;
-      _result = '';
+      _steps.clear();
     });
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/generate'),
+        // ⚠️ Vaihda osoite jos käytät emulaattoria tai fyysistä laitetta
+        Uri.parse('http://10.0.2.2:5000/generate'),
         body: {'goal': goal},
       );
 
       if (response.statusCode == 200) {
+        final lines = response.body.split('\n');
+
+        final parsedSteps = lines.where((line) {
+          return RegExp(r'^\d+\.\s').hasMatch(line);
+        }).map((line) {
+          final clean = line.replaceAll(RegExp(r'^\d+\.\s*'), '').trim();
+          return LearningStep(clean);
+        }).toList();
+
         setState(() {
-          _result = response.body;
+          _steps.addAll(parsedSteps);
         });
       } else {
         setState(() {
-          _result = 'Virhe: ${response.statusCode}';
+          _steps.add(LearningStep('Virhe: ${response.statusCode}'));
         });
       }
     } catch (e) {
       setState(() {
-        _result = 'Yhteysvirhe: $e';
+        _steps.add(LearningStep('Yhteysvirhe: $e'));
       });
     } finally {
       setState(() {
@@ -65,12 +75,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _toggleStep(int index, bool? value) {
+    setState(() {
+      _steps[index].done = value ?? false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pathwise')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
@@ -88,18 +104,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   : const Text('Luo oppimispolku'),
             ),
             const SizedBox(height: 20),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  _result,
-                  style: const TextStyle(fontSize: 16),
+            if (_steps.isNotEmpty)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _steps.length,
+                  itemBuilder: (context, index) {
+                    final step = _steps[index];
+                    return CheckboxListTile(
+                      title: Text(step.text),
+                      value: step.done,
+                      onChanged: (val) => _toggleStep(index, val),
+                    );
+                  },
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
+}
+
+class LearningStep {
+  final String text;
+  bool done;
+
+  LearningStep(this.text, {this.done = false});
 }
 
