@@ -15,6 +15,7 @@ class PathwiseApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pathwise',
       theme: ThemeData.dark(),
+      debugShowCheckedModeBanner: false,
       home: const HomeScreen(),
     );
   }
@@ -73,12 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         final lines = response.body.split('\n');
 
-        final parsedSteps = lines.where((line) {
-          return RegExp(r'^\d+\.\s').hasMatch(line);
-        }).map((line) {
-          final clean = line.replaceAll(RegExp(r'^\d+\.\s*'), '').trim();
-          return LearningStep(clean);
-        }).toList();
+        final parsedSteps = lines
+            .where((line) =>
+                line.trim().toLowerCase().startsWith("step ") ||
+                RegExp(r'^\d+[.\)]').hasMatch(line) ||
+                line.startsWith("**Step"))
+            .map((line) => LearningStep(line.trim()))
+            .where((step) => step.text.isNotEmpty)
+            .toList();
 
         setState(() {
           _steps.addAll(parsedSteps);
