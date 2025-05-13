@@ -1,93 +1,92 @@
-# Pathwise
+# 📚 Pathwise
 
-Pathwise is a simple app that helps you create a learning path using local AI models.  
-Just type what you want to learn, and the app gives you clear steps to follow.
-
-No cloud, no OpenAI — everything runs locally.
+**Pathwise** is an AI-powered app that generates personalized step-by-step learning paths based on your goal — completely offline using local models like Gemma or Mistral via [Ollama](https://ollama.com).  
+Built with ❤️ using Flutter + Flask.
 
 ---
 
-## How it works
+## ✨ Features
 
-- You type a learning goal (e.g. “I want to learn Flutter”)
-- The app sends it to a local AI model using Ollama
-- The model returns a list of steps
-- You can check off each step as you make progress
-
----
-
-## What you need
-
-- [Ollama](https://ollama.com) installed
-- A local AI model (like `gemma:2b` or `mistral`)
-- Python 3 and Flask
-- Flutter installed
+- 🧠 Generates clear learning steps using local LLMs (via Ollama)
+- 📋 Interactive checklist for tracking progress
+- 💾 Automatically saves your progress locally (restores on next launch)
+- 🔐 Fully private and offline — no OpenAI, no cloud
+- 💻 Works on macOS & Web (Android/iOS optional)
+- 🎨 Clean dark UI with responsive design
+- ⚙️ Easy to run with no account needed
 
 ---
 
-## How to run it
+## 🚀 Getting Started
 
-### 1. Start Ollama
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/your-user/pathwise.git
+cd pathwise
+```
+
+### 2. Install and run Ollama
+
+Install Ollama: <https://ollama.com>  
+Then start a fast model:
 
 ```bash
 ollama run gemma:2b
 ollama serve
 ```
 
-### 2. Start the backend
+---
+
+### 3. Run the Flask backend
 
 ```bash
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install flask requests flask-cors
-flask run --port=5050
+python app.py
 ```
 
-If you're running it in Chrome, make sure Flask allows CORS:
+Backend will run at: <http://localhost:5050>
 
-```python
-from flask_cors import CORS
-CORS(app)
-```
+---
 
-### 3. Run the Flutter app
+### 4. Run the Flutter frontend
 
 ```bash
 flutter pub get
-flutter run -d macos   # or use -d chrome
+flutter run -d macos
+# or:
+flutter run -d chrome
 ```
 
 ---
 
-## Backend config
+## 💡 How It Works
 
-In `app.py`, make sure this is set:
-
-```python
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "gemma:2b"
-```
-
-You can also add:
-
-```python
-"num_predict": 200
-```
-
-to limit the length of the AI's response for faster results.
+- Backend sends your goal to Ollama (local model)
+- Model returns a learning plan
+- Flutter displays interactive steps with checkboxes
+- Progress is saved locally using `shared_preferences`
 
 ---
 
-## Coming soon
+## 🧪 Tech Stack
 
-- Save progress
-- Export to PDF
-- Mobile version
-- Custom prompt editing
+- **Frontend**: Flutter
+- **Backend**: Flask (Python)
+- **AI Model**: Ollama (Gemma or Mistral)
+- **Local Storage**: shared_preferences
 
 ---
 
-## License
+## 📄 License
 
-MIT License © 2025 [Heikki Kuittinen]
+MIT License © 2025 Heikki Kuittinen
+
+---
+
+## 📦 Download
+
+Build it locally or get it from [GitHub Releases](https://github.com/your-user/pathwise/releases) (coming soon)
