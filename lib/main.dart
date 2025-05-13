@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const PathwiseApp());
@@ -30,6 +32,29 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<LearningStep> _steps = [];
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedSteps();
+  }
+
+  Future<void> _loadSavedSteps() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('learning_steps');
+    if (saved != null) {
+      final List decoded = jsonDecode(saved);
+      setState(() {
+        _steps.addAll(decoded.map((e) => LearningStep.fromJson(e)));
+      });
+    }
+  }
+
+  Future<void> _saveSteps() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(_steps.map((e) => e.toJson()).toList());
+    await prefs.setString('learning_steps', encoded);
+  }
+
   Future<void> _generateLearningPath() async {
     final goal = _controller.text.trim();
     if (goal.isEmpty) return;
@@ -41,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5050/generate'), // Make sure this is correct
+        Uri.parse('http://127.0.0.1:5050/generate'),
         body: {'goal': goal},
       );
 
@@ -58,6 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _steps.addAll(parsedSteps);
         });
+
+        await _saveSteps();
       } else {
         setState(() {
           _steps.add(LearningStep('Error: ${response.statusCode}'));
@@ -80,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _steps[index].done = value ?? false;
     });
+    _saveSteps();
   }
 
   @override
@@ -111,10 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: _steps.length,
                   itemBuilder: (context, index) {
                     final step = _steps[index];
-                    return CheckboxListTile(
-                      title: Text(step.text),
-                      value: step.done,
-                      onChanged: (val) => _toggleStep(index, val),
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: CheckboxListTile(
+                        title: Text(step.text),
+                        value: step.done,
+                        onChanged: (val) => _toggleStep(index, val),
+                      ),
                     );
                   },
                 ),
@@ -131,5 +165,17 @@ class LearningStep {
   bool done;
 
   LearningStep(this.text, {this.done = false});
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'done': done,
+      };
+
+  factory LearningStep.fromJson(Map<String, dynamic> json) {
+    return LearningStep(
+      json['text'],
+      done: json['done'] ?? false,
+    );
+  }
 }
 

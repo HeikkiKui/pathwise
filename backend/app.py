@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "mistral"  # tai llama3, gemma, tms.
+MODEL = "gemma:2b"  # tai llama3, gemma, tms.
 
 
 @app.route("/generate", methods=["POST"])
