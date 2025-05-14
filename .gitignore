@@ -22,8 +22,8 @@ Cargo.lock
 # === PYTHON (old venv if exists) ===
 venv/
 __pycache__/
-*.py[cod]
-
+*.py[macos]
+backend/
 # === SYSTEM & EDITOR JUNK ===
 .DS_Store
 *.log
