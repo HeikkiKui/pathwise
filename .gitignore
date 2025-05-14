@@ -1,53 +1,29 @@
-# Flutter build output
-build/
+# Flutter
 .dart_tool/
+.packages
+build/
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
 .pub-cache/
-generated_plugin_registrant.dart
-
-# VS Code
-.vscode/
-
-# IntelliJ/Android Studio
+.pub/
 .idea/
-*.iml
-
-# macOS / Linux / Windows native builds (ei käytössä)
-macos/
-linux/
-windows/
-
-# iOS/Android platform-specific generated files
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-ios/.symlinks/
-ios/Pods/
-ios/Runner.xcworkspace/
-ios/build/
 android/.gradle/
-android/build/
-android/captures/
-android/local.properties
-
-# User-specific files
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Environment files (jos joskus käytössä)
-.env
-.env.*
-
-# Dart-specific
-.dart_tool/
+macos/Flutter/ephemeral/
 
 # Rust
-/target
+target/
 Cargo.lock
 
-# Python (if old Flask still exists)
+# Node/npm (if ever used)
+node_modules/
+
+# Python (if virtualenv used)
 venv/
 __pycache__/
+
+# macOS & system
+.DS_Store
+
+# Logs
+*.log
+
