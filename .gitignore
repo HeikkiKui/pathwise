@@ -1,40 +1,61 @@
-# === FLUTTER / DART ===
+# ─────────────────────────────
+# 🧠 FLUTTER / DART
+# ─────────────────────────────
 .dart_tool/
 .packages
-.pub-cache/
 .pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
 build/
 ios/
 android/
+web/.dart_tool/
+
+# macOS specific Flutter build files
+macos/Flutter/ephemeral/
+macos/Build/
+*.lock
+
+# ─────────────────────────────
+# 🦀 RUST (pathwise-backend/)
+# ─────────────────────────────
+pathwise-backend/target/
+pathwise-backend/Cargo.lock
+
+# ─────────────────────────────
+# 💻 EDITORS & SYSTEM FILES
+# ─────────────────────────────
 .idea/
 .vscode/
 *.iml
-*.lock
-
-# macOS build output
-macos/Flutter/ephemeral/
-macos/Build/
-
-# === RUST ===
-target/
-Cargo.lock
-
-# === PYTHON (old venv if exists) ===
-venv/
-__pycache__/
-*.py[macos]
-backend/
-# === SYSTEM & EDITOR JUNK ===
 .DS_Store
 *.log
+*.swp
+*.tmp
 
-# === SNAPSHOT ===
-.snapshots/
+# ─────────────────────────────
+# ❌ PYTHON (if still exists)
+# ─────────────────────────────
+venv/
+__pycache__/
+*.pyc
 
-# === GENERATED BINARIES ===
-*.so
-*.dll
+# ─────────────────────────────
+# 🗂 GENERAL FILE LIMITS
+# ─────────────────────────────
+*.zip
+*.tar.gz
+*.7z
+*.bak
 *.exe
-*.bin
 *.dylib
+*.dll
+*.so
+
+# Optional: Large media files (only if needed)
+# *.mp4
+# *.mov
+# *.mp3
 
