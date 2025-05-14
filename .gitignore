@@ -1,1 +1,40 @@
-# See updated .gitignore
+# === FLUTTER / DART ===
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+ios/
+android/
+.idea/
+.vscode/
+*.iml
+*.lock
+
+# macOS build output
+macos/Flutter/ephemeral/
+macos/Build/
+
+# === RUST ===
+target/
+Cargo.lock
+
+# === PYTHON (old venv if exists) ===
+venv/
+__pycache__/
+*.py[cod]
+
+# === SYSTEM & EDITOR JUNK ===
+.DS_Store
+*.log
+
+# === SNAPSHOT ===
+.snapshots/
+
+# === GENERATED BINARIES ===
+*.so
+*.dll
+*.exe
+*.bin
+*.dylib
+
