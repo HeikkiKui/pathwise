@@ -1,62 +1,46 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const PathwiseApp());
-}
+void main() => runApp(const MyApp());
 
-class PathwiseApp extends StatelessWidget {
-  const PathwiseApp({super.key});
-
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pathwise',
-      theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0F0F1A),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+        ),
+      ),
       home: const HomeScreen(),
     );
   }
 }
 
+class StepItem {
+  final String title;
+  final String details;
+  bool done;
+
+  StepItem(this.title, {this.details = "", this.done = false});
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _controller = TextEditingController();
-  final List<LearningStep> _steps = [];
+  final TextEditingController _controller = TextEditingController();
+  final List<StepItem> _steps = [];
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedSteps();
-  }
-
-  Future<void> _loadSavedSteps() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString('learning_steps');
-    if (saved != null) {
-      final List decoded = jsonDecode(saved);
-      setState(() {
-        _steps.addAll(decoded.map((e) => LearningStep.fromJson(e)));
-      });
-    }
-  }
-
-  Future<void> _saveSteps() async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = jsonEncode(_steps.map((e) => e.toJson()).toList());
-    await prefs.setString('learning_steps', encoded);
-  }
-
-  Future<void> _generateLearningPath() async {
+  Future<void> _generateSteps() async {
     final goal = _controller.text.trim();
     if (goal.isEmpty) return;
 
@@ -71,33 +55,29 @@ class _HomeScreenState extends State<HomeScreen> {
         body: {'goal': goal},
       );
 
-      if (response.statusCode == 200) {
-        final lines = response.body.split('\n');
+      print('🔍 BACKEND RESPONSE:\n${response.body}');
 
-        final parsedSteps = lines
-            .where((line) =>
-                line.trim().toLowerCase().startsWith("step ") ||
-                RegExp(r'^\d+[.\)]').hasMatch(line) ||
-                line.startsWith("**Step"))
-            .map((line) => LearningStep(line.trim()))
-            .where((step) => step.text.isNotEmpty)
-            .toList();
+      final pattern = RegExp(
+        r"Step\s*\d+:\s*(.*?)\s*Description:\s*(.*?)(?=Step\s*\d+:|\Z)",
+        dotAll: true,
+      );
+      final matches = pattern.allMatches(response.body);
 
+      if (matches.isEmpty) {
         setState(() {
-          _steps.addAll(parsedSteps);
+          _steps.add(StepItem("⚠️ Could not parse AI response", details: response.body));
         });
-
-        await _saveSteps();
       } else {
         setState(() {
-          _steps.add(LearningStep('Error: ${response.statusCode}'));
+          _steps.addAll(matches.map((match) => StepItem(
+                match.group(1)!.trim(),
+                details: match.group(2)!.trim(),
+              )));
         });
       }
-    } catch (e, stacktrace) {
-      print('❌ ERROR: $e');
-      print('🪵 STACKTRACE:\n$stacktrace');
+    } catch (e) {
       setState(() {
-        _steps.add(LearningStep('Connection error: $e'));
+        _steps.add(StepItem('❌ Connection failed', details: e.toString()));
       });
     } finally {
       setState(() {
@@ -106,78 +86,95 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _toggleStep(int index, bool? value) {
+  void _toggleDone(int index, bool? value) {
     setState(() {
       _steps[index].done = value ?? false;
     });
-    _saveSteps();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pathwise')),
+      appBar: AppBar(
+        title: const Text('🌟 Pathwise'),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF1A1A2E),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                labelText: 'What do you want to learn?',
-                border: OutlineInputBorder(),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: '✨ What do you want to learn?',
+                labelStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _generateLearningPath,
-              child: _isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Generate Learning Path'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _generateSteps,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A00FF),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('🚀 Generate Learning Path'),
+              ),
             ),
             const SizedBox(height: 20),
-            if (_steps.isNotEmpty)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _steps.length,
-                  itemBuilder: (context, index) {
-                    final step = _steps[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      child: CheckboxListTile(
-                        title: Text(step.text),
-                        value: step.done,
-                        onChanged: (val) => _toggleStep(index, val),
-                      ),
-                    );
-                  },
-                ),
-              ),
+            Expanded(
+              child: _steps.isEmpty
+                  ? const Center(
+                      child: Text('👆 Enter a goal and tap the button.'),
+                    )
+                  : ListView.separated(
+                      itemCount: _steps.length,
+                      separatorBuilder: (_, __) => const Divider(color: Colors.grey),
+                      itemBuilder: (context, index) {
+                        final step = _steps[index];
+                        return CheckboxListTile(
+                          value: step.done,
+                          onChanged: (val) => _toggleDone(index, val),
+                          title: Text(
+                            '${index + 1}. ${step.title}',
+                            style: TextStyle(
+                              color: step.done ? Colors.greenAccent : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              decoration: step.done ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                          subtitle: step.details.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    step.details,
+                                    style: const TextStyle(color: Colors.white70),
+                                  ),
+                                )
+                              : null,
+                          activeColor: Colors.purpleAccent,
+                          checkboxShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class LearningStep {
-  final String text;
-  bool done;
-
-  LearningStep(this.text, {this.done = false});
-
-  Map<String, dynamic> toJson() => {
-        'text': text,
-        'done': done,
-      };
-
-  factory LearningStep.fromJson(Map<String, dynamic> json) {
-    return LearningStep(
-      json['text'],
-      done: json['done'] ?? false,
     );
   }
 }

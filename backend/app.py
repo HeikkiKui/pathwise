@@ -1,62 +1,41 @@
 from flask import Flask, request
-from flask_cors import CORS
 import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Allow cross-origin requests if needed (e.g., Chrome/Web)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "gemma:2b"  # Use a lightweight, fast model
+MODEL = "gemma:2b"  # or "mistral"
 
 
 @app.route("/generate", methods=["POST"])
 def generate():
     goal = request.form.get("goal")
     if not goal:
-        return "⚠️ No learning goal provided.", 400
+        return "No learning goal provided", 400
 
-    prompt = f"Create a clear step-by-step learning plan for: {goal}. Include short descriptions."
+    prompt = f"""
+You are a learning path assistant. The user wants to learn: {goal}
+
+Create a clear step-by-step guide. Format each step exactly like this:
+
+Step 1: [Short title here]
+Description: [One or two sentence description here]
+
+Step 2: ...
+Description: ...
+
+Avoid Markdown, headings, or bullets. Output plain text only.
+""".strip()
 
     payload = {
         "model": MODEL,
         "prompt": prompt,
         "stream": False,
-        "num_predict": 150,  # Limit output for speed and reliability
+        "options": {"num_predict": 500},
     }
 
-    try:
-        response = requests.post(OLLAMA_URL, json=payload, timeout=25)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("response", "⚠️ No response from model.")
-
-    except requests.exceptions.Timeout:
-        return (
-            "⚠️ The model took too long to respond. Try again with a shorter goal.",
-            504,
-        )
-
-    except requests.exceptions.RequestException as e:
-        return f"❌ Error communicating with Ollama: {e}", 502
-
-    except Exception as e:
-        return f"🔥 Internal server error: {e}", 500
-
-
-# Optional: Preload the model for speed
-def warm_up():
-    try:
-        print("🔁 Preloading model...")
-        requests.post(
-            OLLAMA_URL,
-            json={"model": MODEL, "prompt": "Hi", "stream": False, "num_predict": 1},
-            timeout=10,
-        )
-        print("✅ Model is ready.")
-    except Exception as e:
-        print("⚠️ Warm-up failed:", e)
-
-
-if __name__ == "__main__":
-    warm_up()
-    app.run(port=5050)
+    response = requests.post(OLLAMA_URL, json=payload)
+    data = response.json()
+    return data.get("response", "No response from model")

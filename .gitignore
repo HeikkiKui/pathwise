@@ -44,3 +44,10 @@ android/local.properties
 # Dart-specific
 .dart_tool/
 
+# Rust
+/target
+Cargo.lock
+
+# Python (if old Flask still exists)
+venv/
+__pycache__/
