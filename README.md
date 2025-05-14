@@ -1,92 +1,102 @@
 # 📚 Pathwise
 
-**Pathwise** is an AI-powered app that generates personalized step-by-step learning paths based on your goal — completely offline using local models like Gemma or Mistral via [Ollama](https://ollama.com).  
-Built with ❤️ using Flutter + Flask.
+**Pathwise** is a local, offline-first learning path generator.  
+It uses a local AI model (via [Ollama](https://ollama.com)) and a modern Flutter frontend to generate personalized step-by-step learning plans.
 
 ---
 
-## ✨ Features
+## 🧩 Features
 
-- 🧠 Generates clear learning steps using local LLMs (via Ollama)
-- 📋 Interactive checklist for tracking progress
-- 💾 Automatically saves your progress locally (restores on next launch)
-- 🔐 Fully private and offline — no OpenAI, no cloud
-- 💻 Works on macOS & Web (Android/iOS optional)
-- 🎨 Clean dark UI with responsive design
-- ⚙️ Easy to run with no account needed
+- ✨ Input a learning goal (e.g. "I want to learn Rust")
+- 🧠 Gets a detailed list of learning steps from a local LLM (Mistral, Gemma, etc.)
+- ✅ Each step is checkable and expandable with more info
+- 💾 Saves your progress locally (shared preferences)
+- 🌙 Beautiful dark UI with gradient/bling design
+- 🧑‍💻 Works offline — no OpenAI or cloud
 
 ---
 
-## 🚀 Getting Started
+## 🚀 How to Run Locally
 
-### 1. Clone the repo
+### 1. Install Requirements
+
+- [Flutter](https://docs.flutter.dev/get-started/install) (macOS/web support)
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Ollama](https://ollama.com) + a model (`gemma:2b` recommended)
+
+---
+
+### 2. Clone the Project
 
 ```bash
-git clone https://github.com/your-user/pathwise.git
+git clone https://github.com/HeikkiKui/pathwise.git
 cd pathwise
 ```
 
-### 2. Install and run Ollama
+---
 
-Install Ollama: <https://ollama.com>  
-Then start a fast model:
+### 3. Run the Rust Backend
+
+```bash
+cd pathwise-backend
+cargo run
+```
+
+This starts a server at `http://localhost:5050` that sends prompts to your local Ollama model.
+
+---
+
+### 4. Run Ollama
 
 ```bash
 ollama run gemma:2b
+# Or for background serving:
 ollama serve
 ```
 
----
-
-### 3. Run the Flask backend
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install flask requests flask-cors
-python app.py
-```
-
-Backend will run at: <http://localhost:5050>
+Make sure the model is downloaded (`ollama pull gemma:2b` if needed).
 
 ---
 
-### 4. Run the Flutter frontend
+### 5. Run the Flutter Frontend
 
 ```bash
+cd ..
 flutter pub get
 flutter run -d macos
-# or:
+# Or:
 flutter run -d chrome
 ```
 
 ---
 
-## 💡 How It Works
+## 📸 Screenshots
 
-- Backend sends your goal to Ollama (local model)
-- Model returns a learning plan
-- Flutter displays interactive steps with checkboxes
-- Progress is saved locally using `shared_preferences`
+> _(Add screenshots later when your UI is finalized)_
 
 ---
 
-## 🧪 Tech Stack
+## 🧠 How It Works
 
-- **Frontend**: Flutter
-- **Backend**: Flask (Python)
-- **AI Model**: Ollama (Gemma or Mistral)
-- **Local Storage**: shared_preferences
-
----
-
-## 📄 License
-
-MIT License © 2025 Heikki Kuittinen
+- Rust backend exposes a POST `/generate` route
+- Sends prompt to `http://localhost:11434/api/generate` (Ollama)
+- Parses AI response into structured steps
+- Flutter displays them as expandable checklist
 
 ---
 
-## 📦 Download
+## ✅ Roadmap
 
-Build it locally or get it from [GitHub Releases](https://github.com/your-user/pathwise/releases) (coming soon)
+- [x] Basic goal input
+- [x] AI step generation via Ollama
+- [x] Shared preferences for saving
+- [x] Bling theme
+- [ ] PDF export
+- [ ] Mobile support (Android/iOS)
+- [ ] Custom templates per learning type
+
+---
+
+## 🪪 License
+
+MIT © [HeikkiKui](https://github.com/HeikkiKui)
